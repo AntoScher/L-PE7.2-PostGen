@@ -7,7 +7,7 @@ class ImageGenerator:
         Инициализация генератора изображений с использованием Google Gemini API
         """
         genai.configure(api_key=google_api_key)
-        self.model = genai.GenerativeModel('gemini-pro-vision')
+        self.model = genai.GenerativeModel('gemini-1.5-flash')
 
     def generate_image(self, prompt):
         """
