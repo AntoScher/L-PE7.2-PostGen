@@ -1,47 +1,85 @@
-import google.generativeai as genai
-import base64
+# generators/image_gen_gg.py
 
-class ImageGenerator:
-    def __init__(self, google_api_key):
-        """
-        Инициализация генератора изображений с использованием Google Gemini API
-        """
-        genai.configure(api_key=google_api_key)
-        self.model = genai.GenerativeModel('gemini-pro-vision')
+import os
+import vertexai
+from vertexai.preview.vision_models import ImageGenerationModel
+from google.cloud import storage
+from datetime import datetime, timedelta
+from PIL import Image
 
-    def generate_image(self, prompt):
+
+class ImagenGenerator:
+    """
+    Класс для генерации изображений с использованием Google Cloud Imagen.
+    """
+
+    def __init__(self, project_id: str, location: str, gcs_bucket_name: str):
         """
-        Генерирует изображение на основе текстового промпта.
-        Возвращает base64 строку с изображением в формате PNG.
+        Инициализирует SDK Vertex AI, GCS клиент и загружает модель Imagen.
+        Аутентификация должна быть настроена через переменную окружения
+        GOOGLE_APPLICATION_CREDENTIALS.
+
+        Args:
+            project_id (str): ID проекта в Google Cloud.
+            location (str): Регион для выполнения запросов.
+            gcs_bucket_name (str): Имя бакета в Google Cloud Storage.
         """
+        print("Инициализация генератора изображений Google Cloud Imagen...")
+        vertexai.init(project=project_id, location=location)
+
+        self.storage_client = storage.Client(project=project_id)
+        self.bucket = self.storage_client.bucket(gcs_bucket_name)
+
+        self.model = ImageGenerationModel.from_pretrained("imagegeneration@006")
+        print("Генератор готов к работе.")
+
+    def generate_image(self, prompt: str) -> str | None:
+        """
+        Генерирует изображение, сохраняет его локально, загружает в GCS
+        и возвращает временный публичный URL.
+
+        Args:
+            prompt (str): Текстовое описание для генерации изображения.
+
+        Returns:
+            str | None: Временный публичный URL или None в случае ошибки.
+        """
+        print(f"Imagen: получен запрос на генерацию по промпту: '{prompt}'")
+
         try:
-            # Генерация изображения
-            response = self.model.generate_content(
-                contents=[prompt],
-                generation_config=genai.types.GenerationConfig(
-                    candidate_count=1,
-                    max_output_tokens=2048,
-                    temperature=0.5
-                )
+            response = self.model.generate_images(
+                prompt=prompt,
+                number_of_images=1
             )
-
-            # Проверка наличия изображения в ответе
-            if not response.candidates or not response.candidates[0].content.parts:
-                raise ValueError("API не вернуло изображение")
-
-            # Извлечение изображения
-            image_part = next((part for part in response.candidates[0].content.parts if part.mime_type.startswith('image/')), None)
-
-            if not image_part:
-                raise ValueError("В ответе не найдено данных изображения.")
-
-            image_data = image_part.data
-            image_mime_type = image_part.mime_type
-
-            # Преобразование в base64
-            image_base64 = base64.b64encode(image_data).decode('utf-8')
-            return f"data:{image_mime_type};base64,{image_base64}"
-
         except Exception as e:
-            print(f"Ошибка при генерации изображения: {e}")
-            raise
+            print(f"Ошибка при вызове API Vertex AI: {e}")
+            return None
+
+        if not response.images:
+            print("Ошибка: API не вернуло изображений.")
+            return None
+
+        # Создаем директорию для сохранения, если её нет
+        output_dir = "generated_images"
+        os.makedirs(output_dir, exist_ok=True)
+
+        # Создаем уникальное имя файла
+        base_filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
+        local_save_path = os.path.join(output_dir, base_filename)
+
+        # 1. Сохранение локально
+        pil_image = response.images[0]._pil_image.convert('RGB')
+        pil_image.save(local_save_path, 'jpeg')
+        print(f"Изображение сохранено локально: {local_save_path}")
+
+        # 2. Загрузка в GCS
+        gcs_object_name = f"project-images/{base_filename}"
+        blob = self.bucket.blob(gcs_object_name)
+        blob.upload_from_filename(local_save_path)
+        print(f"Файл загружен в GCS: gs://{self.bucket.name}/{gcs_object_name}")
+
+        # 3. Генерация и возврат Signed URL
+        signed_url = blob.generate_signed_url(version="v4", expiration=timedelta(minutes=60))
+        print("Временный URL успешно сгенерирован.")
+
+        return signed_url
