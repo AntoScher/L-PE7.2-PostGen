@@ -1,5 +1,5 @@
 from generators.text_gen import PostGenerator
-from generators.image_gen_gg import ImageGenerator
+from generators.image_gen import ImageGenerator
 import config as conf
 
 post_gen = PostGenerator(conf.openai_key, tone="позитивный и весёлый", topic="Новая коллекция кухонных ножей от компании ZeroKnifes")
