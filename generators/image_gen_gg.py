@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 # generators/image_gen_gg.py
 
 import os
@@ -6,6 +7,22 @@ from vertexai.preview.vision_models import ImageGenerationModel
 from google.cloud import storage
 from datetime import datetime, timedelta
 from PIL import Image
+=======
+import requests
+import base64
+import json
+
+
+class ImageGenerator:
+    def __init__(self, google_api_key):
+        """
+        Инициализация генератора изображений.
+        Используется REST API для модели Gemini через endpoint v1beta.
+        """
+        self.api_key = google_api_key
+        # Обновлённый endpoint с версией v1beta
+        self.endpoint = "https://generativeai.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+>>>>>>> Stashed changes
 
 
 class ImagenGenerator:
@@ -15,6 +32,7 @@ class ImagenGenerator:
 
     def __init__(self, project_id: str, location: str, gcs_bucket_name: str):
         """
+<<<<<<< Updated upstream
         Инициализирует SDK Vertex AI, GCS клиент и загружает модель Imagen.
         Аутентификация должна быть настроена через переменную окружения
         GOOGLE_APPLICATION_CREDENTIALS.
@@ -83,3 +101,56 @@ class ImagenGenerator:
         print("Временный URL успешно сгенерирован.")
 
         return signed_url
+=======
+        Генерирует изображение по заданному текстовому промпту.
+        Возвращает data URI, содержащую base64-кодированное изображение.
+        """
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
+
+        payload = {
+            "contents": [prompt],
+            "generationConfig": {
+                "candidateCount": 1,
+                "maxOutputTokens": 2048,
+                "temperature": 0.5,
+                # Указываем модальности ответа, чтобы в ответ пришли данные изображения
+                "responseModalities": ["IMAGE", "TEXT"]
+            }
+        }
+
+        response = requests.post(self.endpoint, headers=headers, json=payload)
+        if response.status_code != 200:
+            raise Exception(f"Ошибка API (HTTP {response.status_code}): {response.text}")
+
+        data = response.json()
+
+        # Для отладки: можно вывести полный ответ
+        # print(json.dumps(data, indent=2))
+
+        # Проверяем, что в ответе присутствуют кандидаты и части контента
+        if not data.get("candidates") or not data["candidates"][0].get("content") or not data["candidates"][0][
+            "content"].get("parts"):
+            raise ValueError("API не вернуло ожидаемых данных")
+
+        parts = data["candidates"][0]["content"]["parts"]
+
+        # Ищем часть, содержащую изображение (определяем по MIME-типу)
+        image_part = None
+        for part in parts:
+            mime = part.get("mime_type") or part.get("mimeType")
+            if mime and mime.startswith("image/"):
+                image_part = part
+                break
+
+        if not image_part:
+            raise ValueError("В ответе не найдено данных изображения.")
+
+        # Извлекаем данные изображения
+        image_data = image_part["data"]
+        # Если API возвращает бинарные данные, можно применить base64.b64encode,
+        # однако зачастую данные уже возвращаются в виде base64-строки.
+        return f"data:{mime};base64,{image_data}"
+>>>>>>> Stashed changes

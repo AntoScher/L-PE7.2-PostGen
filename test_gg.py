@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 # test_gg.py
 
 # Импортируем наши обновленные классы из Google-экосистемы
@@ -39,3 +40,20 @@ print(content)
 print("\nURL сгенерированного изображения:\n")
 print(image_url)
 print("\n" + "="*54)
+=======
+from generators.image_gen_gg import ImageGenerator
+import config as conf  # Предполагается, что в config.py хранится переменная google_api_key
+
+def main():
+    prompt = "A futuristic cityscape at sunset"
+    img_gen = ImageGenerator(conf.google_api_key)
+    try:
+        image_uri = img_gen.generate_image(prompt)
+        print("Сгенерированное изображение (data URI):")
+        print(image_uri)
+    except Exception as e:
+        print(f"Ошибка при генерации изображения: {e}")
+
+if __name__ == "__main__":
+    main()
+>>>>>>> Stashed changes
