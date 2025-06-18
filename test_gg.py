@@ -1,5 +1,3 @@
-<<<<<<< Updated upstream
-# test_gg.py
 
 # Импортируем наши обновленные классы из Google-экосистемы
 from generators.text_gen_gg import GeminiPostGenerator
@@ -40,7 +38,7 @@ print(content)
 print("\nURL сгенерированного изображения:\n")
 print(image_url)
 print("\n" + "="*54)
-=======
+
 from generators.image_gen_gg import ImageGenerator
 import config as conf  # Предполагается, что в config.py хранится переменная google_api_key
 
@@ -56,4 +54,3 @@ def main():
 
 if __name__ == "__main__":
     main()
->>>>>>> Stashed changes

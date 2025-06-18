@@ -1,4 +1,4 @@
-<<<<<<< Updated upstream
+
 # generators/image_gen_gg.py
 
 import os
@@ -7,7 +7,7 @@ from vertexai.preview.vision_models import ImageGenerationModel
 from google.cloud import storage
 from datetime import datetime, timedelta
 from PIL import Image
-=======
+
 import requests
 import base64
 import json
@@ -22,7 +22,7 @@ class ImageGenerator:
         self.api_key = google_api_key
         # Обновлённый endpoint с версией v1beta
         self.endpoint = "https://generativeai.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
->>>>>>> Stashed changes
+
 
 
 class ImagenGenerator:
@@ -101,9 +101,7 @@ class ImagenGenerator:
         print("Временный URL успешно сгенерирован.")
 
         return signed_url
-=======
-        Генерирует изображение по заданному текстовому промпту.
-        Возвращает data URI, содержащую base64-кодированное изображение.
+
         """
         headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -153,4 +151,4 @@ class ImagenGenerator:
         # Если API возвращает бинарные данные, можно применить base64.b64encode,
         # однако зачастую данные уже возвращаются в виде base64-строки.
         return f"data:{mime};base64,{image_data}"
->>>>>>> Stashed changes
+"""
