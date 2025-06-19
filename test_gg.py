@@ -1,13 +1,12 @@
-# test_gg.py
+# test_ds_gg.py
 
-from generators.text_gen_gg import GeminiPostGenerator
+from generators.text_gen_ds import DeepSeekPostGenerator
 from generators.image_gen_gg import ImagenGenerator
 import config as conf
 
 # Инициализация генератора текста
-post_gen = GeminiPostGenerator(
-    project_id=conf.GCP_PROJECT_ID,
-    location=conf.GCP_LOCATION,
+post_gen = DeepSeekPostGenerator(
+    api_key=conf.DEEPSEEK_API_KEY,
     tone="позитивный и весёлый",
     topic="Новая коллекция кухонных ножей от компании ZeroKnifes"
 )
@@ -16,7 +15,7 @@ post_gen = GeminiPostGenerator(
 content = post_gen.generate_post()
 img_desc = post_gen.generate_post_image_description()
 
-# Инициализация генератора изображений
+# Инициализация генератора изображений (можно оставить как есть)
 img_gen = ImagenGenerator(
     project_id=conf.GCP_PROJECT_ID,
     location=conf.GCP_LOCATION,
