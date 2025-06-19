@@ -195,3 +195,4 @@ cython_debug/
 config.py
 service-account.json
 *.json
+/generated_images
