@@ -193,4 +193,5 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 config.py
+service-account.json
 *.json
